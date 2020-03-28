@@ -4,14 +4,17 @@ import java.util.LinkedList;
 import java.util.List;
 
 import it.polito.tdp.lab04.DAO.CorsoDAO;
+import it.polito.tdp.lab04.DAO.StudenteDAO;
 
 public class Model {
 	
 	CorsoDAO corsoDao;
+	StudenteDAO studenteDao;
 
 	public Model() {
 		super();
 		this.corsoDao = new CorsoDAO();
+		this.studenteDao=new StudenteDAO();
 	}
 	
 	public List<Corso> getTuttiICorsi(){
@@ -35,6 +38,34 @@ public class Model {
 		
 	}
 	
+	public Studente getStudenteDaMatricola(Integer matricola) {
+		List<Studente> studenti= studenteDao.getTuttiStudenti();
+		for(Studente s:studenti) {
+			if(s.getMatricola().equals(matricola)) {
+				return s;
+			}
+		}
+		return null;
+	}
+	
+	public List<Studente> getTuttiStudenti(){
+		return studenteDao.getTuttiStudenti();
+		
+	}
+	
+	public List<Studente> getStudentiIscrittiAlCorso(String corso){
+		List<Corso> ritornata= corsoDao.getTuttiICorsi();
+		List<Studente> ritornataS= new LinkedList<>();
+		for(Corso c:ritornata) {
+			if(c.getNome().equals(corso)) {
+				ritornataS= corsoDao.getStudentiIscrittiAlCorso(c);
+				break;
+			}
+		}
+		
+		return ritornataS;
+		
+	}
 	
 
 }
