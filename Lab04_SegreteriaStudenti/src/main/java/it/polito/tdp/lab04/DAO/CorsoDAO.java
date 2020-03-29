@@ -58,10 +58,48 @@ public class CorsoDAO {
 	
 	
 	/*
-	 * Dato un codice insegnamento, ottengo il corso
+	 * Dato il nome del corso, ottengo il corso
 	 */
-	public void getCorso(Corso corso) {
+	public Corso getCorso(String nomeCorso) {
 		// TODO
+		final String sql = "SELECT * FROM corso where nome='"+nomeCorso+"'";
+
+		Corso corso = null;
+
+		try {
+			Connection conn = ConnectDB.getConnection();
+			PreparedStatement st = conn.prepareStatement(sql);
+
+			ResultSet rs = st.executeQuery();
+
+			while (rs.next()) {
+
+				/*
+				String codins = rs.getString("codins");
+				int numeroCrediti = rs.getInt("crediti");
+				String nome = rs.getString("nome");
+				int periodoDidattico = rs.getInt("pd");
+
+				System.out.println(codins + " " + numeroCrediti + " " + nome + " " + periodoDidattico);
+				*/
+				
+				// Crea un nuovo JAVA Bean Corso
+				// Aggiungi il nuovo oggetto Corso alla lista corsi
+				corso= new Corso(rs.getString("codins"),rs.getInt("crediti"),rs.getString("nome"),rs.getInt("pd"));
+				
+			}
+
+			st.close();
+			conn.close();
+			
+			return corso;
+			
+
+		} catch (SQLException e) {
+			// e.printStackTrace();
+			throw new RuntimeException("Errore Db", e);
+		}
+		
 	}
 
 	/*
@@ -121,10 +159,35 @@ public class CorsoDAO {
 	/*
 	 * Data una matricola ed il codice insegnamento, iscrivi lo studente al corso.
 	 */
-	public boolean inscriviStudenteACorso(Studente studente, Corso corso) {
+	public boolean iscriviStudenteACorso(Integer matricola, String codIns) {
 		// TODO
 		// ritorna true se l'iscrizione e' avvenuta con successo
-		return false;
+		/*
+		 INSERT INTO `iscrizione` (`matricola`, `codins`) VALUES
+		(161245, '01KSUPG')
+		 */
+		final String sql="INSERT INTO `iscrizione` (`matricola`, `codins`) VALUES " + 
+				"	("+matricola+", '"+codIns+"')";
+		
+		try {
+			Connection conn = ConnectDB.getConnection();
+			PreparedStatement st = conn.prepareStatement(sql);
+
+			ResultSet rs = st.executeQuery();
+
+			st.close();
+			conn.close();
+			
+			return true;
+			
+
+		} catch (SQLException e) {
+			// e.printStackTrace();
+			return false;
+			//throw new RuntimeException("Errore Db", e);
+		}
+		
+		//return false;
 	}
 	
 	/**

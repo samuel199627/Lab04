@@ -71,5 +71,14 @@ public class Model {
 		return corsoDao.getTuttiICorsiStudente(matricola);
 	}
 	
+	public Corso getCorso(String nomeCorso) {
+		return corsoDao.getCorso(nomeCorso);
+	}
+
+	public boolean iscriviStudenteCorso(Integer matricola, String codIns) {
+		// TODO Auto-generated method stub
+		return corsoDao.iscriviStudenteACorso(matricola, codIns);
+	}
+	
 
 }

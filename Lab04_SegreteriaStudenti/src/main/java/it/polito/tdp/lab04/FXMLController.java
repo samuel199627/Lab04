@@ -1,6 +1,7 @@
 package it.polito.tdp.lab04;
 
 import java.net.URL;
+
 import java.util.List;
 import java.util.ResourceBundle;
 
@@ -14,7 +15,29 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 
+//COMMENTI A QUESTO LABORATORIO
+/*
+ i punti funzionano tutti e sono in grado di fare tutte le registrazioni del caso, pero' alla fine mi sono accorto
+ di una cosa che non avevo voglia di correggere. In pratica un corso puo' avere lo stesso nome e quindi nel menu a tendina
+ sarebbe stato piu' intelligente mettere il nome del corso, ma con anche il codice perche' altrimenti se io seleziono la stringa 
+ dal menu a tendina e importo solo la stringa non so che cosa importo se due corsi hanno il nome uguale.
+ Un'alternativa era quella di andare a modifica il metodo toString di corso in cui stampavamo solamente il nome e quindi nel menu
+ anziche' inserire le stringhe, inserivo direttamente i corsi (per cui in private ComboBox<String> corsiMenu; dovevamo
+ in realta' mettere private ComboBox<Corso> corsiMenu;) e questi venivano visualizzati con il loro metodo to String ma il
+ riferimento restava effettivamente all'oggetto corso.
+ Per il resto tutto quadra e tutte le operazioni si fanno, solo che non ho capito il box verde della consegna da dove sia stato
+ preso sinceramente.
+ 
+ Ultima cosa ho commesso un errore perche' in 'corso senza iscritti' e' in quello in cui sono andato ad iscriverne uno nuovo
+ mentre 'corso per nuovi iscritti' e' quello che e' rimasto vuoto.
+ 
+ Per il resto alcuni comandi si ripetono e quindi avrei potuto creare dei metodi ad Hoc per semplificare il codice, pero'
+ per il resto funziona tutto abbastanza bene.
+ */
+
 public class FXMLController {
+	
+	
 	
 	Model model;
 
@@ -57,7 +80,7 @@ public class FXMLController {
     @FXML
     void cercaCorsi(ActionEvent event) {
 
-    	corsiMenu.setValue("Nessun Corso");
+    	//corsiMenu.setValue("Nessun Corso");
     	//data la matricola dello studente completare con nome e cognome
     	txtNome.clear();
     	txtCognome.clear();
@@ -250,11 +273,90 @@ public class FXMLController {
     @FXML
     void doReset(ActionEvent event) {
 
+    	txtRisultato.clear();
+    	txtNome.clear();
+    	txtCognome.clear();
+    	txtMatricola.clear();
+    	
     }
 
     @FXML
     void iscrivi(ActionEvent event) {
-
+    	
+    	txtRisultato.clear();
+    	txtNome.clear();
+    	txtCognome.clear();
+    	//Dobbiamo restituire tutti gli studenti del corso scelto con il menu a tendina
+    	//txtRisultato.setText("Ciao");
+    	//questa stringa la devo passare in un'istruzione SQL
+    	String nomeCorso= corsiMenu.getValue();
+    	if(nomeCorso==null) {
+    		txtRisultato.setText("NESSUN CORSO SELEZIONATO, NON POSSO ISCRIVERE!!!");
+    		return;
+    	}
+    	if(nomeCorso.equals("Nessun corso")) {
+    		txtRisultato.setText("NESSUN CORSO SELEZIONATO, NON POSSO ISCRIVERE!!!");
+    		return;
+    	}
+    	
+    	//se abbiamo inserito una matricola nel campo, dobbiamo cercare se quello studente e' iscritto al corso piuttosto che 
+    	//tutti gli studenti iscritti a quel corso
+    	String matricolaString = txtMatricola.getText();
+    	if(matricolaString.equals("")) { //se nel campo matricola non ho inserito nulla allora ricerco tutti gli studenti per quel corso
+	    	txtRisultato.setText("NESSUNA MATRICOLA PASSATA, NON POSSO ISCRIVERE");
+	    	return;
+    	}
+    	
+		//recuperiamo la matricola inserita
+    	//usiamo la classe java base quindi il confronto lo si fa con equals
+    	Integer matricola;
+    	//verifichiamo che sia stato inserito un numero nel riquadro del periodo
+    	try {
+    		matricola = Integer.parseInt(matricolaString);
+    	} catch (NumberFormatException e) {
+    		txtRisultato.setText("Devi inserire un numero per la matricola, così non posso iscrivere!");
+    		return;
+    		
+    	}
+    	
+    	//devo ricercare tra gli studenti del corso selezionato, la matricola inserita
+    	//per completezza verifichiamo che lo studente sia esistente
+    	List<Studente> ritorna = model.getTuttiStudenti();
+    	boolean esistente=false;
+    	for(Studente s: ritorna) {
+    		if(s.getMatricola().equals(matricola)) {
+    			txtNome.setText(s.getNome());
+    			txtCognome.setText(s.getCognome());
+    			esistente=true;
+    		}
+    	}
+    	//studente non esistente
+    	if(esistente==false) {
+    		txtRisultato.setText("La matricola che hai passato come parametro non e' registrata tra gli studenti, quindi non posso iscrivere!");
+    		return;
+    	}
+    	
+    	List<Studente> ritornaStud=model.getStudentiIscrittiAlCorso(nomeCorso);
+    	//int conta=1;
+    	for(Studente s:ritornaStud) {
+    		if(s.getMatricola().equals(matricola)) {
+    			txtRisultato.setText("Studente gia' iscritto a questo corso, quindi non posso iscrivere");
+    			return;
+    		}	
+    	}
+    	
+    	//arrivato qui ho il corso selezionato, lo studente esistente e non ancora iscritto al corso selezionato
+    	//quindi posso procedere ad iscriverlo
+    	if(model.iscriviStudenteCorso(matricola, model.getCorso(nomeCorso).getCodIns())==true) {
+    		txtRisultato.setText("Ho iscritto lo studente a questo corso con successo");
+    		return;
+    	}
+    	
+    	txtRisultato.setText("Non sono riuscito ad iscrivere lo studente a questo corso con successo");
+	    	
+    	
+        	
+    	
     }
 
     @FXML
@@ -308,6 +410,10 @@ public class FXMLController {
 			che non associo a nessun iscritto
 			INSERT INTO `corso` (`codins`, `crediti`, `nome`, `pd`) VALUES
 			('123', 8, 'Corso senza iscritti', 2)
+    	 */
+    	/*
+    	  INSERT INTO `corso` (`codins`, `crediti`, `nome`, `pd`) VALUES
+			('1234', 8, 'Corso per nuovi iscritti', 2)
     	 */
     	corsiMenu.getItems().add("Nessun corso");
         corsiMenu.getItems().addAll(model.getTuttiICorsiStringa());
