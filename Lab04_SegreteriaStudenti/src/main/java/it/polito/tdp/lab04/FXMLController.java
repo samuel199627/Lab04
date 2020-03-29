@@ -57,6 +57,65 @@ public class FXMLController {
     @FXML
     void cercaCorsi(ActionEvent event) {
 
+    	corsiMenu.setValue("Nessun Corso");
+    	//data la matricola dello studente completare con nome e cognome
+    	txtNome.clear();
+    	txtCognome.clear();
+    	txtRisultato.clear();
+    	
+    	//recuperiamo la matricola inserita
+    	String matricolaString = txtMatricola.getText();
+
+    	//usiamo la classe java base quindi il confronto lo si fa con equals
+    	Integer matricola;
+
+    	//verifichiamo che sia stato inserito un numero nel riquadro del periodo
+    	try {
+    		matricola = Integer.parseInt(matricolaString);
+    	} catch (NumberFormatException e) {
+    		txtRisultato.setText("Devi inserire un numero per la matricola!");
+    		return;
+    		
+    	}
+    	
+    	//possiamo avere due casi di errore in cui lo studente passato non e' nel database e quindi la matricola
+    	//che abbiamo passato non si trova in studenti
+    	//oppure lo studente si trova nel database ma non e' collegato a nessun corso
+    	List<Studente> ritorna = model.getTuttiStudenti();
+    	boolean esistente=false;
+    	for(Studente s: ritorna) {
+    		if(s.getMatricola().equals(matricola)) {
+    			txtNome.setText(s.getNome());
+    			txtCognome.setText(s.getCognome());
+    			esistente=true;
+    		}
+    	}
+    	//studente non esistente
+    	if(esistente==false) {
+    		txtRisultato.setText("La matricola che hai passato come parametro non e' registrata tra gli studenti!");
+    		return;
+    	}
+    	
+    	List<Corso> ritornaCorsi=model.getTuttiICorsiStudente(matricola);
+    	/*
+    	 	select s.matricola
+			from studente as s 
+			where s.matricola NOT IN (select i.matricola
+										from iscrizione as i)
+			non ha restituito nessuna riga e dunque tutti gli studenti sono associati ad un corso
+			allora mi sono inserito senza associarmi a nessun corso
+			INSERT INTO `studente` (`matricola`, `cognome`, `nome`, `CDS`) VALUES
+			(7, 'GRASSI', 'SAMUEL', 'INGMAT');
+			//quindi ora abbiamo lo studente non iscritto ad alcun corso e la condizione qui sotto funziona
+    	 */
+    	if(ritornaCorsi.size()==0) {
+    		txtRisultato.setText("Nessun corso associato allo studente passato!");
+    	}
+    	for(Corso c: ritornaCorsi) {
+    		txtRisultato.appendText(c.toString()+"\n");
+    	}
+    	
+    	
     }
 
     @FXML
@@ -77,19 +136,80 @@ public class FXMLController {
     		return;
     	}
     	
-    	List<Studente> ritorna=model.getStudentiIscrittiAlCorso(nomeCorso);
-    	//int conta=1;
-    	for(Studente s:ritorna) {
-    		//txtRisultato.appendText(""+conta+" "+s.toString()+"\n");
-    		txtRisultato.appendText(s.toString()+"\n");
-    		//conta++;
+    	//se abbiamo inserito una matricola nel campo, dobbiamo cercare se quello studente e' iscritto al corso piuttosto che 
+    	//tutti gli studenti iscritti a quel corso
+    	String matricolaString = txtMatricola.getText();
+    	if(matricolaString.equals("")) { //se nel campo matricola non ho inserito nulla allora ricerco tutti gli studenti per quel corso
+	    	List<Studente> ritorna=model.getStudentiIscrittiAlCorso(nomeCorso);
+	    	//int conta=1;
+	    	if(ritorna.size()==0) {
+	    		txtRisultato.appendText("Nessuno studente iscritto al corso");
+	    	}
+	    	for(Studente s:ritorna) {
+	    		//txtRisultato.appendText(""+conta+" "+s.toString()+"\n");
+	    		txtRisultato.appendText(s.toString()+"\n");
+	    		//conta++;
+	    	}
     	}
+    	else {
+    		//recuperiamo la matricola inserita
+        	
+
+        	//usiamo la classe java base quindi il confronto lo si fa con equals
+        	Integer matricola;
+
+        	//verifichiamo che sia stato inserito un numero nel riquadro del periodo
+        	try {
+        		matricola = Integer.parseInt(matricolaString);
+        	} catch (NumberFormatException e) {
+        		txtRisultato.setText("Devi inserire un numero per la matricola!");
+        		return;
+        		
+        	}
+        	
+        	//devo ricercare tra gli studenti del corso selezionato, la matricola inserita
+        	//per completezza verifichiamo che lo studente sia esistente
+        	List<Studente> ritorna = model.getTuttiStudenti();
+        	boolean esistente=false;
+        	for(Studente s: ritorna) {
+        		if(s.getMatricola().equals(matricola)) {
+        			txtNome.setText(s.getNome());
+        			txtCognome.setText(s.getCognome());
+        			esistente=true;
+        		}
+        	}
+        	//studente non esistente
+        	if(esistente==false) {
+        		txtRisultato.setText("La matricola che hai passato come parametro non e' registrata tra gli studenti!");
+        		return;
+        	}
+        	
+        	List<Studente> ritornaStud=model.getStudentiIscrittiAlCorso(nomeCorso);
+	    	//int conta=1;
+	    	for(Studente s:ritornaStud) {
+	    		if(s.getMatricola().equals(matricola)) {
+	    			txtRisultato.setText("Studente gia' iscritto a questo corso");
+	    			return;
+	    		}	
+	    	}
+	    	txtRisultato.setText("Studente non ancora iscritto a questo corso");
+        	
+        	
+    	}
+    	
     	
     }
 
     @FXML
     void choiseCorso(ActionEvent event) {
     	
+    	//questa in realta' non serviva perche' quando scelgo un corso dal menu a tendina
+    	//txtRisultato.appendText("CIAO ");
+    	//sfruttiamo per pulire il campo matricola
+    	txtMatricola.clear();
+    	txtRisultato.clear();
+    	txtNome.clear();
+    	txtCognome.clear();
     }
     
     @FXML
@@ -179,6 +299,16 @@ public class FXMLController {
     		System.out.println(c.toString());
     	}
     	*/
+    	/*
+    	 	select c.nome
+			from corso as c 
+			where c.codins NOT IN (select i.codins
+										from iscrizione as i)
+			non restituisce nessuna riga dunque per gestire il caso di corsi senza iscritti mi sono creato un nuovo corso 
+			che non associo a nessun iscritto
+			INSERT INTO `corso` (`codins`, `crediti`, `nome`, `pd`) VALUES
+			('123', 8, 'Corso senza iscritti', 2)
+    	 */
     	corsiMenu.getItems().add("Nessun corso");
         corsiMenu.getItems().addAll(model.getTuttiICorsiStringa());
         //corsiMenu.setValue("Nessun corso");

@@ -67,5 +67,9 @@ public class Model {
 		
 	}
 	
+	public List<Corso> getTuttiICorsiStudente(Integer matricola){
+		return corsoDao.getTuttiICorsiStudente(matricola);
+	}
+	
 
 }
